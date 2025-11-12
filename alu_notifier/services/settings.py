@@ -1,7 +1,7 @@
 import os
 from datetime import datetime
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel
 
 path = "data.json"
 
@@ -9,19 +9,6 @@ class Settings(BaseModel):
     daily_gift_link: str = "https://shop.gameloft.com/games/Asphalt_Unite"
     daily_gift_notification: bool = True
     next_daily_gift_time: datetime | None = None
-
-    # @field_validator("next_daily_gift_time", mode="before")
-    # @classmethod
-    # def parse_next_daily_gift_time(cls, v):
-    #     if v is None:
-    #         return None
-    #     if isinstance(v, str):
-    #         if v == "None" or v == "":
-    #             return None
-    #         return datetime.fromisoformat(v)
-    #     if isinstance(v, datetime):
-    #         return v
-    #     return None
 
 
 class SettingsService:

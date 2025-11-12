@@ -2,8 +2,8 @@ from datetime import datetime, timedelta
 
 from PyQt6.QtCore import QTimer, QUrl, Qt
 from PyQt6.QtGui import QIcon, QAction, QDesktopServices, QFont
-from PyQt6.QtWidgets import QMainWindow, QSystemTrayIcon, QMenu, QApplication, QVBoxLayout, QHBoxLayout, \
-    QPushButton, QWidget, QLabel, QCheckBox
+from PyQt6.QtWidgets import QMainWindow, QSystemTrayIcon, QMenu, QApplication, QVBoxLayout, \
+    QPushButton, QWidget, QLabel, QCheckBox, QDialog, QDateTimeEdit
 from win11toast import notify
 
 from alu_notifier.services.settings import SETTINGS_SERVICE
@@ -36,6 +36,8 @@ class MainWindow(QMainWindow):
         self.open_shop_button.clicked.connect(self.open_shop) # type: ignore
         self.refresh_timer_button = QPushButton("Refresh Timer")
         self.refresh_timer_button.clicked.connect(self.refresh_timer) # type: ignore
+        self.set_time_button = QPushButton("Set Time")
+        self.set_time_button.clicked.connect(self.set_time) # type: ignore
         self.quit_button = QPushButton("Quit")
         self.quit_button.clicked.connect(QApplication.quit) # type: ignore
 
@@ -48,12 +50,18 @@ class MainWindow(QMainWindow):
         layout.addSpacing(10)
         layout.addWidget(self.open_shop_button)
         layout.addWidget(self.refresh_timer_button)
+        layout.addWidget(self.set_time_button)
         layout.addSpacing(10)
         layout.addWidget(self.quit_button)
 
         central_widget = QWidget()
         central_widget.setLayout(layout)
         self.setCentralWidget(central_widget)
+
+        self.timer = QTimer(self)
+        self.timer.setSingleShot(True)
+        self.timer.timeout.connect(self.main_timer_tick) # type: ignore
+        self.refresh_main_timer()
 
         self.label_timer = QTimer(self)
         self.label_timer.timeout.connect(self.refresh_time) # type: ignore
@@ -124,6 +132,25 @@ class MainWindow(QMainWindow):
                 return
             self.show_window()
 
+    def main_timer_tick(self):
+        default_delay = 30 * 60 * 1000 # 30min
+        target_time = SETTINGS_SERVICE.get().next_daily_gift_time
+        if not target_time:
+            self.timer.start(default_delay)
+            return
+
+        delay = min(int((target_time - datetime.now()).total_seconds() * 1000), default_delay)
+        if delay <= 0:
+            self.show_badge()
+        else:
+            self.clear_badge()
+
+        self.timer.start(delay if delay > 0 else default_delay)
+
+    def refresh_main_timer(self):
+        self.timer.stop()
+        self.timer.start(100)
+
     def refresh_time(self):
         settings = SETTINGS_SERVICE.get()
         if not settings.next_daily_gift_time:
@@ -133,7 +160,7 @@ class MainWindow(QMainWindow):
 
         diff = settings.next_daily_gift_time - datetime.now()
         if diff.total_seconds() < 0:
-            self.timer_label.setText("Next daily gift is available now!")
+            self.timer_label.setText(f"Next daily gift is available since {settings.next_daily_gift_time:%H:%M:%S}")
             self.countdown_label.setText("Available Now!")
             self.show_badge()
             return
@@ -141,6 +168,30 @@ class MainWindow(QMainWindow):
         self.timer_label.setText(f"Next daily gift at {settings.next_daily_gift_time:%H:%M:%S}")
         self.countdown_label.setText(format_time_delta(diff))
         self.clear_badge()
+
+    def set_time(self):
+        dialog = QDialog(self)
+        dialog.setModal(True)
+        dialog.setMinimumSize(180, 120)
+        dialog.setWindowTitle("Set Time")
+
+        time = SETTINGS_SERVICE.get().next_daily_gift_time
+        time_edit = QDateTimeEdit(time)
+        time_edit.setCalendarPopup(True)
+        time_edit.setDateTimeRange(datetime.now() - timedelta(days=1), datetime.now() + timedelta(days=2))
+        submit_button = QPushButton("Save")
+        submit_button.clicked.connect(dialog.accept) # type: ignore
+
+        layout = QVBoxLayout()
+        layout.addWidget(time_edit)
+        layout.addWidget(submit_button)
+        dialog.setLayout(layout)
+
+        if dialog.exec():
+            settings = SETTINGS_SERVICE.get()
+            settings.next_daily_gift_time = time_edit.dateTime().toPyDateTime()
+            SETTINGS_SERVICE.save(settings)
+            self.refresh_main_timer()
 
     def open_shop(self):
         settings = SETTINGS_SERVICE.get()
@@ -153,6 +204,7 @@ class MainWindow(QMainWindow):
         settings = SETTINGS_SERVICE.get()
         settings.next_daily_gift_time = datetime.now() + timedelta(days=1)
         SETTINGS_SERVICE.save(settings)
+        self.refresh_main_timer()
         self.refresh_time()
 
     def show_notification_changed(self):
