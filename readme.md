@@ -1,4 +1,13 @@
-Build executable:
-```
-pyinstaller --onefile --windowed --add-data "resources;resources" --icon=resources/logo.ico --name "ALU Helper" main.py
-```
+# Daily Gift Notifier for Asphalt Legends players
+
+## Installation
+
+- Download the latest release from [releases](https://github.com/aalster/alu-notifier/releases).
+- Unpack the archive and place the .exe file somewhere in your system. For example, in `C:\Program Files\ALU Notifier\ALU Daily Gift Notifier.exe`.
+- Create a shortcut and add it to the Startup folder (press <kbd>Win</kbd>+<kbd>R</kbd>, type `shell:startup`, and press <kbd>Enter</kbd> to open it).
+
+## Usage
+
+ALU Daily Gift Notifier always starts minimized to the system tray. Click the icon to open it.
+
+Once you claim a daily gift, restart the timer. You will be notified when the next gift is available.
