@@ -4,4 +4,5 @@ build
 dist
 *.iml
 *.spec
-alu_notifier.db
+
+data.json

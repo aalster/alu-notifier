@@ -44,14 +44,14 @@ def parse_time(time: str) -> int:
         return 0
 
 def format_time_delta(time_delta) -> str:
-    total_minutes = int(time_delta.total_seconds() // 60)
-    hours, minutes = divmod(total_minutes, 60)
+    minutes, seconds = divmod(int(time_delta.total_seconds()), 60)
+    hours, minutes = divmod(minutes, 60)
     days, hours = divmod(hours, 24)
 
     day_str = ""
     if days > 0:
         day_str = f"{days} day, " if days == 1 else f"{days} days, "
-    return f"{day_str}{hours:02}:{minutes:02}"
+    return f"{day_str}{hours:02}:{minutes:02}:{seconds:02}"
 
 def pixmap_to_bytes(pixmap, format_="PNG"):
     ba = QtCore.QByteArray()
