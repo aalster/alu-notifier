@@ -1,5 +1,7 @@
 # Daily Gift Notifier for Asphalt Legends players
 
+![Main window](./docs/screenshot.png)
+
 ## Installation
 
 - Download the latest release from [releases](https://github.com/aalster/alu-notifier/releases).
