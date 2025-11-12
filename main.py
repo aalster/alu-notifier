@@ -2,8 +2,8 @@ import sys
 
 from PyQt6.QtWidgets import QApplication
 
-from alu_notifier.utils.single_instance_lock import single_instance_lock
-from alu_notifier.views.main_window import MainWindow
+from alu_notifier.main_window import MainWindow
+from alu_notifier.single_instance_lock import single_instance_lock
 
 
 def main():

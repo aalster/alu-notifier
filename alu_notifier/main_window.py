@@ -6,8 +6,8 @@ from PyQt6.QtWidgets import QMainWindow, QSystemTrayIcon, QMenu, QApplication, Q
     QPushButton, QWidget, QLabel, QCheckBox, QDialog, QDateTimeEdit
 from win11toast import notify
 
-from alu_notifier.services.settings import SETTINGS_SERVICE
-from alu_notifier.utils.utils import get_resource_path, create_badged_icon, format_time_delta
+from alu_notifier.settings import SETTINGS_SERVICE
+from alu_notifier.utils import get_resource_path, create_badged_icon, format_time_delta
 
 
 class MainWindow(QMainWindow):
