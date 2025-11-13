@@ -136,14 +136,17 @@ class MainWindow(QMainWindow):
         default_delay = 30 * 60 * 1000 # 30min
         target_time = SETTINGS_SERVICE.get().next_daily_gift_time
         if not target_time:
+            self.tray_icon.setToolTip("Timer is not set")
             self.timer.start(default_delay)
             return
 
         delay = min(int((target_time - datetime.now()).total_seconds() * 1000), default_delay)
         if delay <= 0:
             self.show_badge()
+            self.tray_icon.setToolTip("Daily Gift Available!")
         else:
             self.clear_badge()
+            self.tray_icon.setToolTip(f"Next daily gift at {target_time:%H:%M:%S}")
 
         self.timer.start(delay if delay > 0 else default_delay)
 
