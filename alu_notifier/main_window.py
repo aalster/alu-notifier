@@ -38,6 +38,8 @@ class MainWindow(QMainWindow):
         self.refresh_timer_button.clicked.connect(self.refresh_timer) # type: ignore
         self.set_time_button = QPushButton("Set Time")
         self.set_time_button.clicked.connect(self.set_time) # type: ignore
+        self.mark_unclaimed_button = QPushButton("Mark Gift Unclaimed")
+        self.mark_unclaimed_button.clicked.connect(self.mark_gift_unclaimed) # type: ignore
         self.quit_button = QPushButton("Quit")
         self.quit_button.clicked.connect(QApplication.quit) # type: ignore
 
@@ -51,6 +53,7 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.open_shop_button)
         layout.addWidget(self.refresh_timer_button)
         layout.addWidget(self.set_time_button)
+        layout.addWidget(self.mark_unclaimed_button)
         layout.addSpacing(10)
         layout.addWidget(self.quit_button)
 
@@ -74,17 +77,20 @@ class MainWindow(QMainWindow):
         show_action = QAction("Open", self)
         open_shop_action = QAction("Visit Gameloft Shop", self)
         refresh_timer_action = QAction("Refresh Timer", self)
+        mark_unclaimed_action = QAction("Mark Gift Unclaimed", self)
         quit_action = QAction("Quit", self)
 
         show_action.triggered.connect(self.show_window) # type: ignore
         open_shop_action.triggered.connect(self.open_shop) # type: ignore
         refresh_timer_action.triggered.connect(self.refresh_timer) # type: ignore
+        mark_unclaimed_action.triggered.connect(self.mark_gift_unclaimed) # type: ignore
         quit_action.triggered.connect(QApplication.quit) # type: ignore
 
         tray_menu = QMenu()
         tray_menu.addAction(show_action)
         tray_menu.addAction(open_shop_action)
         tray_menu.addAction(refresh_timer_action)
+        tray_menu.addAction(mark_unclaimed_action)
         tray_menu.addAction(quit_action)
         tray_icon.setContextMenu(tray_menu)
         tray_icon.activated.connect(self.on_tray_icon_activated) # type: ignore
@@ -103,7 +109,7 @@ class MainWindow(QMainWindow):
         self.showNormal()
         self.activateWindow()
 
-    def show_badge(self):
+    def show_badge(self, with_notification=True):
         if self.daily_gift_badge_showing:
             return
         self.daily_gift_badge_showing = True
@@ -112,7 +118,7 @@ class MainWindow(QMainWindow):
         self.setWindowIcon(badged)
         if self.tray_icon:
             self.tray_icon.setIcon(badged)
-        if SETTINGS_SERVICE.get().daily_gift_notification:
+        if with_notification and SETTINGS_SERVICE.get().daily_gift_notification:
             notify('Daily Gift Available!', 'Click tray icon to visit the shop')
 
     def clear_badge(self):
@@ -207,6 +213,14 @@ class MainWindow(QMainWindow):
         settings = SETTINGS_SERVICE.get()
         settings.next_daily_gift_time = datetime.now() + timedelta(days=1)
         SETTINGS_SERVICE.save(settings)
+        self.refresh_main_timer()
+        self.refresh_time()
+
+    def mark_gift_unclaimed(self):
+        settings = SETTINGS_SERVICE.get()
+        settings.next_daily_gift_time = datetime.now()
+        SETTINGS_SERVICE.save(settings)
+        self.show_badge(with_notification=False)
         self.refresh_main_timer()
         self.refresh_time()
 
